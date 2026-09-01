@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     本地文件镜像 settings（无网络环境专用）
+     用途：把全部远程仓库镜像到项目内 maven-repo（file:// 协议），
+          不联网即可构建。适用于离线编译验证；有网环境请删除/不用本文件。
+     使用：mvn -s settings.offline.xml -f pom.verify.xml clean package
+     ============================================================ -->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <!-- 离线专用本地仓库（项目内，避免写用户 ~/.m2） -->
+    <localRepository>C:\Users\16839\Desktop\second   hand\maven-repo</localRepository>
+
+    <mirrors>
+        <mirror>
+            <id>local-file-mirror</id>
+            <mirrorOf>*</mirrorOf>
+            <name>Project local file mirror (offline)</name>
+            <url>file:///C:/Users/16839/Desktop/second   hand/maven-repo</url>
+        </mirror>
+    </mirrors>
+</settings>

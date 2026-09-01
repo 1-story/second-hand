@@ -1,0 +1,3 @@
+# 离线/沙箱环境使用 subclass mock maker（避免 byte-buddy agent attach）
+# 标准环境可删除本文件以使用默认 inline mock maker
+mock-maker-subclass

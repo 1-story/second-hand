@@ -30,7 +30,7 @@ import java.util.List;
 public class HttpAiService implements AiService {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
+            .connectTimeout(Duration.ofSeconds(3))
             .build();
 
     @Value("${ai.enabled:false}")
@@ -45,8 +45,9 @@ public class HttpAiService implements AiService {
     @Value("${ai.llm.model:gpt-4o-mini}")
     private String model;
 
-    @Value("${ai.llm.timeout-ms:15000}")
-    private long timeoutMs;
+    /** 读取超时（规范 v1.0 第 7 节：默认 5 秒；chat 可放宽至 10 秒） */
+    @Value("${ai.llm.read-timeout-ms:5000}")
+    private long readTimeoutMs;
 
     @Override
     public RecognizeResult recognize(List<String> images, String hint) {
@@ -99,7 +100,7 @@ public class HttpAiService implements AiService {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/chat/completions"))
-                    .timeout(Duration.ofMillis(timeoutMs))
+                    .timeout(Duration.ofMillis(readTimeoutMs))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + apiKey)
                     .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))

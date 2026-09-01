@@ -34,7 +34,9 @@ ai:
     base-url: https://api.example.com/v1
     api-key: "${LLM_API_KEY:sk-xxxx}"
     model: gpt-4o-mini
-    timeout-ms: 15000
+    # 超时约定（规范 v1.0 第 7 节）：连接 3 秒 + 读取 5 秒；chat 可放宽至 10 秒
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
   # AI 辅助审核开关：true=发布进入审核中(4)，false=直接上架(1)
   audit-on-publish: true
 

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * AiService Mock 实现（离线可用）
@@ -102,6 +103,12 @@ public class MockAiService implements AiService {
     @Override
     public BigDecimal llmEstimate(String categoryName, String description, BigDecimal rulePrice) {
         // Mock 模式不使用大模型估价，返回 null 由规则引擎结果兜底
+        return null;
+    }
+
+    @Override
+    public String chat(Long productId, String question, List<Map<String, String>> history) {
+        // Mock 模式不模拟问答，返回 null：由 /api/ai/chat 接口层（林天楚）组装降级文案
         return null;
     }
 

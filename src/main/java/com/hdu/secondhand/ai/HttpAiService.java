@@ -15,6 +15,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AiService 真实 HTTP 实现（骨架，待大模型 API 就绪）
@@ -92,13 +93,26 @@ public class HttpAiService implements AiService {
         }
     }
 
+    @Override
+    public String chat(Long productId, String question, List<Map<String, String>> history) {
+        if (!enabled) {
+            return null;
+        }
+        String messagesJson = buildMessagesJson(productId, question, history);
+        return chatMessages(messagesJson);
+    }
+
     /** 调用大模型对话接口（OpenAI 兼容协议骨架） */
     private String chat(String prompt) {
+        return chatMessages("[{\"role\":\"user\",\"content\":\"" + escapeJson(prompt) + "\"}]");
+    }
+
+    /** 调用大模型对话接口（messages 数组版） */
+    private String chatMessages(String messagesJson) {
         if (baseUrl.isBlank() || apiKey.isBlank() || "sk-xxxx".equals(apiKey)) {
             throw new BizException(ResultCode.AI_LLM_NOT_CONFIGURED, "大模型服务未配置：请设置 ai.llm.base-url 与 api-key");
         }
-        String body = "{\"model\":\"" + model + "\",\"messages\":[{\"role\":\"user\",\"content\":\""
-                + escapeJson(prompt) + "\"}],\"temperature\":0.3}";
+        String body = "{\"model\":\"" + model + "\",\"messages\":" + messagesJson + ",\"temperature\":0.3}";
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/chat/completions"))
@@ -117,6 +131,34 @@ public class HttpAiService implements AiService {
             log.warn("大模型接口调用失败: {}", e.getMessage());
             return null;
         }
+    }
+
+    /** 构造多轮对话 messages JSON：system 上下文 + history + 当前问题 */
+    private String buildMessagesJson(Long productId, String question, List<Map<String, String>> history) {
+        StringBuilder sb = new StringBuilder("[");
+        // system 角色：平台助手设定（可带商品上下文）
+        String system = "你是校园二手交易平台的智能助手，回答简洁友好，可引导用户私信卖家协商。";
+        if (productId != null) {
+            system += "用户正在查看商品ID " + productId + " 的详情页。";
+        }
+        sb.append("{\"role\":\"system\",\"content\":\"").append(escapeJson(system)).append("\"}");
+
+        if (history != null) {
+            for (Map<String, String> m : history) {
+                String role = m == null ? null : m.get("role");
+                String content = m == null ? null : m.get("content");
+                if (role == null || content == null || content.isBlank()) {
+                    continue;
+                }
+                sb.append(",{\"role\":\"").append(escapeJson(role))
+                        .append("\",\"content\":\"").append(escapeJson(content)).append("\"}");
+            }
+        }
+        if (question != null && !question.isBlank()) {
+            sb.append(",{\"role\":\"user\",\"content\":\"").append(escapeJson(question)).append("\"}");
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     /** 从 OpenAI 兼容响应中提取 content 字段（骨架解析，接入时按真实响应调整） */

@@ -2,6 +2,7 @@ package com.hdu.secondhand.ai;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AiService 统一封装（契约定义）
@@ -9,6 +10,9 @@ import java.util.List;
  * <p>说明：本接口由后端商品/AI 模块（田博）定义并消费；
  * 大模型 API 对接由陈思瀚负责，就绪后提供真实的 HTTP 实现即可无感切换。
  * 当前提供 {@link MockAiService}（离线可用）与 {@link HttpAiService}（骨架）。</p>
+ *
+ * <p>降级约定（规范 v1.1 第 6 节）：各方法在超时/异常/未启用时返回 {@code null}，
+ * 由调用方（接口层）组装降级文案；AiService 只负责调用底层模型。</p>
  */
 public interface AiService {
 
@@ -40,6 +44,17 @@ public interface AiService {
      * @return 大模型估价（元）；不可用时返回 null
      */
     BigDecimal llmEstimate(String categoryName, String description, BigDecimal rulePrice);
+
+    /**
+     * AI 智能问答（对齐《接口约定规范 v1.1》6.4）
+     *
+     * @param productId 商品 ID（可空，用于商品上下文）
+     * @param question  用户问题
+     * @param history   多轮对话历史 [{role, content}]（可空；role: user/assistant）
+     * @return 大模型回答文本；超时/异常/未启用（mock）时返回 null，
+     *         由 /api/ai/chat 接口层（林天楚）组装 { answer, fallback, suggestManual }
+     */
+    String chat(Long productId, String question, List<Map<String, String>> history);
 
     /**
      * 识别结果

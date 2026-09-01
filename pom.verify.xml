@@ -61,6 +61,19 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
 
+        <!-- spring-jdbc：MyBatis/本地运行需要（mybatis-spring 中为 optional） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+        </dependency>
+
+        <!-- HikariCP 连接池：本地 local profile 手动 DataSource 使用（生产由 starter-jdbc 传递） -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.0.1</version>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

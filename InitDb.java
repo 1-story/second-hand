@@ -26,7 +26,8 @@ public class InitDb {
             s.execute(createSql);
             System.out.println("OK: database second_hand created");
         } catch (SQLException e) {
-            if (e.getMessage() != null && e.getMessage().contains("already exists")) {
+            String msg = e.getMessage() == null ? "" : e.getMessage();
+            if (msg.contains("already exists") || msg.contains("已存在") || msg.contains("已经存在")) {
                 System.out.println("OK: database second_hand already exists");
             } else {
                 throw e;

@@ -6,7 +6,7 @@ spring:
     name: second-hand-backend
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/second_hand
+    url: jdbc:postgresql://localhost:5432/second_hand?stringtype=unspecified
     username: postgres
     # 数据库密码用环境变量注入（本地运行：set DB_PASSWORD=你的密码）；不要提交真实密码
     password: "${DB_PASSWORD:123456}"

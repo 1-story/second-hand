@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * 用户表（基础字段；登录/权限由登录模块扩展）
  */
 @Data
-@TableName("user")
+@TableName("t_user")
 public class User {
 
     @TableId(type = IdType.AUTO)

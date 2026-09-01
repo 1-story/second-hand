@@ -23,3 +23,6 @@ Thumbs.db
 
 # WPS/Office 临时锁文件
 ~\$*
+
+# 团队仓库本地副本（避免误提交）
+.team-repo/

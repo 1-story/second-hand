@@ -2,37 +2,58 @@ package com.hdu.secondhand.vo;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 商品详情 VO（含图片与卖家信息）
+ * 商品详情 VO（对齐《接口约定规范 v1.1》7.2；扩展字段保留供发布/个人中心使用）
  */
 @Data
 public class ProductVO {
 
     private Long id;
-    private Long sellerId;
-    private String sellerNickname;
-    private Integer sellerCredit;
-    private Long categoryId;
-    private String categoryName;
     private String title;
     private String description;
-    /** 价格（分） */
+
+    /** 售价（分） */
     private Long price;
-    /** AI 估价（分） */
+
+    /** 原价（分） */
+    private Long originalPrice;
+
+    /** AI 估价（分，扩展） */
     private Long estimatedPrice;
+
+    /** 封面图 */
+    private String cover;
+
+    /** 分类 key：book/digital/living/sports/clothing/other */
+    private String category;
+
+    private String categoryName;
+
+    /** 成色：100/90/80/70 */
+    private String condition;
+
+    private String conditionName;
+
+    /** 浏览量 */
+    private Integer views;
+
+    private LocalDateTime createdAt;
+
+    /** 卖家信息 */
+    private SellerVO seller;
+
+    // ---- 扩展字段 ----
+    private Long sellerId;
+    private Long categoryId;
     private Integer conditionLevel;
     private String conditionDesc;
     private String tags;
     private String location;
-    private String coverImage;
     private Integer status;
-    private Integer viewCount;
     private Integer favoriteCount;
     private Boolean favorited;
-    private LocalDateTime createdAt;
     private List<String> images;
 }

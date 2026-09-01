@@ -1,5 +1,6 @@
 package com.hdu.secondhand.ai;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -9,11 +10,12 @@ import java.util.Locale;
 /**
  * AiService Mock 实现（离线可用）
  *
- * <p>基于关键词规则模拟大模型能力，供无网络/联调阶段使用：
- * 分类识别（手机/笔记本/平板/耳机/图书/考研等）、成色识别、标题描述生成。
- * 大模型 API 就绪后切换 {@link HttpAiService}。</p>
+ * <p>默认生效（ai.mock=true，规范 v1.1 第 6 节：联调与答辩演示，零网络依赖）：
+ * 基于关键词规则模拟大模型能力（分类识别、成色识别、标题描述生成）。
+ * 真实模型接入：ai.mock=false + ai.enabled=true，此时使用 {@link HttpAiService}。</p>
  */
 @Component
+@ConditionalOnProperty(name = "ai.mock", havingValue = "true", matchIfMissing = true)
 public class MockAiService implements AiService {
 
     @Override

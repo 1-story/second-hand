@@ -24,6 +24,9 @@ public class User {
     /** 登录名 */
     private String username;
 
+    /** 真实姓名（注册/实名认证字段，规范 5.1） */
+    private String name;
+
     /** 昵称 */
     private String nickname;
 
@@ -38,6 +41,9 @@ public class User {
 
     /** 信用分（100 起，冗余汇总） */
     private Integer creditScore;
+
+    /** 学号实名认证 0未认证 1已认证 */
+    private Integer realNameVerified;
 
     /** 是否在校学生 0否 1是 */
     private Integer isStudent;

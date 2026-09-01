@@ -23,6 +23,9 @@ public class ProductUpdateDTO {
     /** 期望售价（单位：分） */
     private Long price;
 
+    /** 原价（单位：分） */
+    private Long originalPrice;
+
     /** 成色等级 1~10 */
     private Integer conditionLevel;
 

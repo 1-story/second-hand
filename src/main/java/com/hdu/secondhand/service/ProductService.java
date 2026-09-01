@@ -36,6 +36,18 @@ public interface ProductService {
     void changeStatus(Long id, int targetStatus, long userId);
 
     /**
+     * 管理员审核商品（组长分工：商品审核业务流程归田博）
+     * 审核中(4) → 通过:在售(1) / 驳回:审核驳回(5)；驳回原因写入 reviewRemark。
+     * AI 预检由 /api/ai/review（陈思瀚，AiService 能力层）先行调用，管理员人工决定后调本接口。
+     *
+     * @param id      商品 ID
+     * @param pass    true=通过 false=驳回
+     * @param remark  驳回原因（可选）
+     * @param adminId 管理员 ID
+     */
+    void adminReview(Long id, boolean pass, String remark, long adminId);
+
+    /**
      * 删除商品（逻辑删除，仅本人，非已售出）
      */
     void delete(Long id, long userId);

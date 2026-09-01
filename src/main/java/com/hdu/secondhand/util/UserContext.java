@@ -11,21 +11,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 /**
  * 当前用户解析工具
  *
- * <p>对齐《接口约定规范 v1.0》第 4 节：
- * <ol>
- *   <li>优先解析 {@code Authorization: Bearer &lt;token&gt;}（JWT，登录模块接入后生效）；</li>
- *   <li>开发期兼容 {@code X-User-Id} 请求头；</li>
- *   <li>两者都无时返回默认测试用户（种子数据 id=1 田博）。</li>
- * </ol>
- * 登录模块就绪后替换 {@link NoopJwtTokenService} 为真实 JWT 解析即可。</p>
+ * <p>对齐《接口约定规范 v1.1》4.2：身份唯一来源为 {@code Authorization: Bearer <JWT>}，
+ * 由登录模块拦截器解析注入（{@link JwtTokenService}），<b>禁止使用 X-User-Id 等自定义头传身份（防伪造）</b>。</p>
+ *
+ * <p>当前状态：JWT 拦截器（陈思瀚）接入前，无 Token 时返回默认测试用户（种子数据 id=1 田博），
+ * 便于开发联调；拦截器接入后，需登录的接口在未携带合法 Token 时应返回 40100。</p>
  */
 @Component
 public class UserContext {
 
-    /** 请求头名称：当前用户 ID（开发期兼容，登录模块接入后移除） */
-    public static final String HEADER_USER_ID = "X-User-Id";
-
-    /** 未登录时使用的默认测试用户（种子数据 id=1 田博） */
+    /** 未登录时使用的默认测试用户（种子数据 id=1 田博；开发期联调用，拦截器接入后收紧） */
     public static final long DEFAULT_USER_ID = 1L;
 
     private static JwtTokenService jwtTokenService;
@@ -36,8 +31,8 @@ public class UserContext {
     }
 
     /**
-     * 获取当前用户 ID：Bearer Token → X-User-Id → 默认测试用户。
-     * 登录模块接入后，未认证请求应在此返回 40100。
+     * 获取当前用户 ID：Bearer Token（JWT）→ 默认测试用户（开发期）。
+     * 登录模块拦截器接入后，未认证请求应在此返回 40100。
      */
     public static long currentUserId() {
         ServletRequestAttributes attrs =
@@ -47,7 +42,6 @@ public class UserContext {
         }
         HttpServletRequest request = attrs.getRequest();
 
-        // 1. Bearer Token（JWT）
         String authorization = request.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7).trim();
@@ -56,21 +50,10 @@ public class UserContext {
                 if (userId != null && userId > 0) {
                     return userId;
                 }
+                throw new BizException(ResultCode.TOKEN_INVALID);
             }
         }
-
-        // 2. 开发期兼容 X-User-Id
-        String header = request.getHeader(HEADER_USER_ID);
-        if (header != null && !header.isBlank()) {
-            try {
-                long id = Long.parseLong(header.trim());
-                if (id > 0) {
-                    return id;
-                }
-            } catch (NumberFormatException ignored) {
-                // 无效头，落到默认用户
-            }
-        }
+        // 开发期兜底（无拦截器）；拦截器接入后改为抛 40100（未登录）
         return DEFAULT_USER_ID;
     }
 }

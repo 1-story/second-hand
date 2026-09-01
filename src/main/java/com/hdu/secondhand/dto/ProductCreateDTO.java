@@ -23,6 +23,9 @@ public class ProductCreateDTO {
     /** 期望售价（必填，单位：分，>0） */
     private Long price;
 
+    /** 原价（可选，单位：分，AI 估价依据，规范 7.1 originalPrice） */
+    private Long originalPrice;
+
     /** 成色等级 1~10（默认 7） */
     private Integer conditionLevel;
 

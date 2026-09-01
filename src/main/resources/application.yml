@@ -28,8 +28,12 @@ mybatis-plus:
 
 # ============ AI 模块配置 ============
 ai:
-  # 大模型服务是否启用（本机无网络/联调阶段置 false 走 Mock 实现）
+  # 大模型服务开关（规范 v1.1 第 6 节，组长统一控制）：
+  #   enabled=false → 全链路规则引擎/默认文案（降级模式）
+  #   mock=true     → MockAiService 预设/规则响应（联调与答辩演示，零网络依赖）
+  #   enabled=true + mock=false → 真实模型（配置 ai.llm.* 与供应商 key）
   enabled: false
+  mock: true
   llm:
     base-url: https://api.example.com/v1
     api-key: "${LLM_API_KEY:sk-xxxx}"

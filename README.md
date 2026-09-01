@@ -100,9 +100,10 @@ java -cp <test-classpath> com.hdu.secondhand.TestRunner
 | AI | POST `/api/ai/estimate` | AI 智能估价（双层+降级，金额分） |
 | AI | POST `/api/ai/draft` | AI 自动填表（草稿） |
 | AI | POST `/api/ai/publish` | AI 一键发布 |
+| 管理 | PUT `/api/admin/products/{id}/review` | 商品审核流转（通过→在售/驳回→审核驳回） |
 | 字典 | GET `/api/dicts` | 枚举字典（免登录） |
 
-`/api/ai/chat`（AI 问答，林天楚）、`/api/ai/review`（AI 审核，V1.0）待接入。详见 `docs/接口说明文档.md`。
+`/api/ai/chat`（AI 问答，**林天楚**）、`/api/ai/review`（AI 预检，**陈思瀚**）、`/api/ai/recommend`（AI 推荐位，**陈思瀚**）为其他成员模块。详见 `docs/接口说明文档.md`。
 
 ## 6. 与其他成员的集成约定
 
@@ -112,8 +113,9 @@ java -cp <test-classpath> com.hdu.secondhand.TestRunner
 | 金额单位 | 接口层整数「分」（`util/MoneyUtil` 与数据库元互转） |
 | 时间格式 | `yyyy-MM-dd HH:mm:ss`（`config/JacksonConfig` 全局） |
 | 当前用户 | 优先 `Authorization: Bearer <JWT>`（`util/JwtTokenService`，陈思瀚接入）；开发期兼容 `X-User-Id` 头 |
-| AiService | 接口 `ai/AiService`：当前 `MockAiService`（离线，engine=rule）；大模型就绪后 `ai.enabled=true` 切换（engine=llm，失败自动降级） |
+| AiService | 接口 `ai/AiService`：`ai.mock=true`（默认）走 `MockAiService`（离线，engine=rule）；`ai.mock=false`+`ai.enabled=true` 走真实模型（engine=llm，失败自动降级），开关由组长统一控制 |
 | 枚举 | `ai/CategoryEnum` 维护规范分类 key（book/digital/...）与数据库 ID 映射；成色 100/90/80/70 ↔ 1~10 |
+| 商品审核 | 审核流程：AI 预检 `/api/ai/review`（陈思瀚）→ 管理员决定 → `PUT /api/admin/products/{id}/review`（田博，状态流转+驳回原因） |
 | CORS | 已开放（`application.yml → cors.allowed-origins`） |
 
 ## 7. 里程碑对照

@@ -4,6 +4,7 @@ import com.hdu.secondhand.common.BizException;
 import com.hdu.secondhand.common.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "ai.mock", havingValue = "false")
 public class HttpAiService implements AiService {
 
     private final HttpClient httpClient = HttpClient.newBuilder()

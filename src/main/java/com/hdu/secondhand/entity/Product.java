@@ -34,6 +34,9 @@ public class Product {
     /** 期望售价 */
     private BigDecimal price;
 
+    /** 原价/入手价（AI 估价依据，规范 7.1 originalPrice） */
+    private BigDecimal originalPrice;
+
     /** AI 估价（可空） */
     private BigDecimal estimatedPrice;
 
@@ -63,6 +66,9 @@ public class Product {
 
     /** 收藏数 */
     private Integer favoriteCount;
+
+    /** 审核驳回原因（管理员审核，规范 6.5 流程） */
+    private String reviewRemark;
 
     /** 逻辑删除 0否 1是 */
     @TableLogic

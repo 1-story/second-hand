@@ -211,4 +211,46 @@ class ProductServiceImplTest {
         when(productMapper.selectById(anyLong())).thenReturn(null);
         assertThrows(BizException.class, () -> productService.detail(999L, 1L));
     }
+
+    @Test
+    @DisplayName("管理员审核：审核中通过 → 在售")
+    void adminReview_pass() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setSellerId(1L);
+        product.setStatus(ProductStatus.AUDITING);
+        when(productMapper.selectById(1L)).thenReturn(product);
+
+        productService.adminReview(1L, true, null, 2L);
+        assertEquals(ProductStatus.ON_SALE, product.getStatus());
+        verify(productMapper).updateById(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("管理员审核：审核中驳回 → 审核驳回并写原因")
+    void adminReview_reject() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setSellerId(1L);
+        product.setStatus(ProductStatus.AUDITING);
+        when(productMapper.selectById(1L)).thenReturn(product);
+
+        productService.adminReview(1L, false, "图片不清晰", 2L);
+        assertEquals(ProductStatus.REJECTED, product.getStatus());
+        assertEquals("图片不清晰", product.getReviewRemark());
+        verify(productMapper).updateById(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("管理员审核：非审核中商品不可审核")
+    void adminReview_invalidStatus() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setSellerId(1L);
+        product.setStatus(ProductStatus.ON_SALE);
+        when(productMapper.selectById(1L)).thenReturn(product);
+
+        assertThrows(BizException.class, () -> productService.adminReview(1L, true, null, 2L));
+        verify(productMapper, never()).updateById(any(Product.class));
+    }
 }

@@ -1,6 +1,6 @@
 # 第二手 SecondHand AI — 后端服务
 
-校园二手交易平台（AI 版）后端，Spring Boot 3.2.5 + MyBatis-Plus 3.5.7 + MySQL 8。
+校园二手交易平台（AI 版）后端，Spring Boot 3.2.5 + MyBatis-Plus 3.5.7 + PostgreSQL 16。
 
 > 本仓库当前为**田博（后端）**负责模块的代码：数据库设计、商品核心业务接口、AI 估价规则引擎、AI 自动填表发布链路。
 > 登录/权限、AiService 大模型 API（陈思瀚）、私信/减碳（林天楚）等模块将逐步并入。
@@ -14,7 +14,7 @@
 | JDK | 17（本机路径 `C:\Users\16839\.jdks\ms-17.0.20.1`） |
 | Spring Boot | 3.2.5 |
 | MyBatis-Plus | 3.5.7 |
-| MySQL | 8.x（utf8mb4） |
+| PostgreSQL | 15/16（库名 `second_hand`） |
 | Maven | 3.9.16（本机路径见下） |
 
 ## 2. 目录结构
@@ -47,8 +47,8 @@
 ## 3. 快速开始（联网环境，团队标准流程）
 
 ```bash
-# 1. 初始化数据库（MySQL 8）
-mysql -u root -p < sql/schema.sql
+# 1. 初始化数据库（PostgreSQL 15/16）
+psql -U postgres -f sql/schema.sql
 
 # 2. 修改数据库密码
 #    src/main/resources/application.yml → spring.datasource.password
@@ -116,5 +116,5 @@ java -cp <test-classpath> com.hdu.secondhand.TestRunner
 
 ## 8. 已知说明
 
-- 本机无 MySQL 驱动缓存且无网络：`pom.xml` 中的 `mysql-connector-j` 需联网下载；离线验证 POM 未引入（编译期不引用其类）。
-- 中文检索：`product` 表已建 `FULLTEXT(title,description) WITH PARSER ngram`（MySQL 8 内置），业务层同时提供 LIKE 兜底。
+- 本机无 PostgreSQL 驱动缓存且无网络：`pom.xml` 中的 `org.postgresql:postgresql` 需联网下载；离线验证 POM 未引入（编译期不引用其类）。
+- 中文检索：`product` 表已建 `pg_trgm` GIN 索引，业务层同时提供 LIKE 兜底。

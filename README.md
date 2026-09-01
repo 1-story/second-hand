@@ -47,17 +47,18 @@
 ## 3. 快速开始（联网环境，团队标准流程）
 
 ```bash
-# 1. 初始化数据库（PostgreSQL 15/16）
-psql -U postgres -f sql/schema.sql
-
-# 2. 修改数据库密码
-#    src/main/resources/application.yml → spring.datasource.password
+# 1. 初始化数据库（PostgreSQL 15/16/17/18）
+#    psql 方式：psql -U postgres -f sql/schema.sql
+#    无 psql 时：java -cp <postgresql-jdbc.jar> InitDb <密码> sql/schema.sql（本仓库已提供 InitDb 工具）
+# 2. 设置数据库密码（环境变量，勿提交真实密码到 git）
+set DB_PASSWORD=你的数据库密码      # Windows
+export DB_PASSWORD=你的数据库密码   # Linux/macOS
 
 # 3. 构建并运行（首次会自动拉取依赖，建议配置阿里云镜像）
 mvn clean package
 java -jar target/second-hand-backend-0.1.0-SNAPSHOT.jar
 
-# 4. 接口根路径 http://localhost:8080/api/...
+# 4. 接口根路径 http://localhost:8080/api/...  （如 /api/products、/api/dicts）
 ```
 
 ## 4. 本机离线编译与测试（无网络环境）

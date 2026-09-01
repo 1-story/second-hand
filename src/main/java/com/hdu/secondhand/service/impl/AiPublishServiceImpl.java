@@ -21,6 +21,7 @@ import com.hdu.secondhand.mapper.CategoryMapper;
 import com.hdu.secondhand.mapper.ProductImageMapper;
 import com.hdu.secondhand.mapper.ProductMapper;
 import com.hdu.secondhand.service.AiPublishService;
+import com.hdu.secondhand.util.MoneyUtil;
 import com.hdu.secondhand.vo.AiDraftVO;
 import com.hdu.secondhand.vo.ProductVO;
 import lombok.RequiredArgsConstructor;
@@ -111,9 +112,10 @@ public class AiPublishServiceImpl implements AiPublishService {
         draft.put("conditionLevel", conditionLevel);
         draft.put("conditionDesc", conditionDesc);
         draft.put("images", recognized.images == null ? Collections.emptyList() : recognized.images);
-        draft.put("suggestPrice", valuation.getRecommend());
-        draft.put("minPrice", valuation.getMin());
-        draft.put("maxPrice", valuation.getMax());
+        // 金额统一存「分」
+        draft.put("suggestPrice", MoneyUtil.toFen(valuation.getRecommend()));
+        draft.put("minPrice", MoneyUtil.toFen(valuation.getMin()));
+        draft.put("maxPrice", MoneyUtil.toFen(valuation.getMax()));
         draft.put("expectPrice", req.getExpectPrice());
         draft.put("estimateDetail", valuation.getDetail());
         draft.put("createdAt", LocalDateTime.now().toString());
@@ -135,9 +137,9 @@ public class AiPublishServiceImpl implements AiPublishService {
         vo.setDescription(description);
         vo.setConditionLevel(conditionLevel);
         vo.setConditionDesc(conditionDesc);
-        vo.setSuggestPrice(valuation.getRecommend());
-        vo.setMinPrice(valuation.getMin());
-        vo.setMaxPrice(valuation.getMax());
+        vo.setSuggestPrice(MoneyUtil.toFen(valuation.getRecommend()));
+        vo.setMinPrice(MoneyUtil.toFen(valuation.getMin()));
+        vo.setMaxPrice(MoneyUtil.toFen(valuation.getMax()));
         vo.setImages(recognized.images == null ? Collections.emptyList() : recognized.images);
         vo.setStatus(DRAFT_WAIT);
         return vo;
@@ -173,9 +175,11 @@ public class AiPublishServiceImpl implements AiPublishService {
         String conditionDesc = node.path("conditionDesc").asText("");
         List<String> images = readImageList(node);
 
-        BigDecimal suggestPrice = new BigDecimal(node.path("suggestPrice").asText("0"));
-        BigDecimal price = req.getPrice() != null && req.getPrice().compareTo(BigDecimal.ZERO) > 0
-                ? req.getPrice() : suggestPrice;
+        // 草稿中金额为「分」
+        Long suggestPriceFen = node.path("suggestPrice").asLong(0);
+        BigDecimal suggestPrice = MoneyUtil.toYuan(suggestPriceFen);
+        BigDecimal price = req.getPrice() != null && req.getPrice() > 0
+                ? MoneyUtil.toYuan(req.getPrice()) : suggestPrice;
 
         // ---- 创建商品 ----
         Product product = new Product();
@@ -216,6 +220,9 @@ public class AiPublishServiceImpl implements AiPublishService {
         // ---- 返回商品 VO ----
         ProductVO vo = new ProductVO();
         BeanUtils.copyProperties(product, vo);
+        // 金额字段类型不同（实体元 / VO 分），手动转换
+        vo.setPrice(MoneyUtil.toFen(product.getPrice()));
+        vo.setEstimatedPrice(MoneyUtil.toFen(product.getEstimatedPrice()));
         vo.setCategoryName(node.path("categoryName").asText(""));
         vo.setImages(images);
         return vo;

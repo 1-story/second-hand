@@ -32,13 +32,13 @@ public class AiDraftVO {
     /** 成色文字描述 */
     private String conditionDesc;
 
-    /** 推荐售价（AI 估价推荐值） */
-    private BigDecimal suggestPrice;
+    /** 推荐售价（AI 估价推荐值，分） */
+    private Long suggestPrice;
 
-    /** 估价区间 [min, max] */
-    private BigDecimal minPrice;
+    /** 估价区间 [min, max]（分） */
+    private Long minPrice;
 
-    private BigDecimal maxPrice;
+    private Long maxPrice;
 
     /** 图片列表 */
     private List<String> images;

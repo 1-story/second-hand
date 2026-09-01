@@ -14,11 +14,11 @@ public class ProductQueryDTO {
     /** 分类 ID */
     private Long categoryId;
 
-    /** 最低价 */
-    private java.math.BigDecimal minPrice;
+    /** 最低价（单位：分） */
+    private Long minPrice;
 
-    /** 最高价 */
-    private java.math.BigDecimal maxPrice;
+    /** 最高价（单位：分） */
+    private Long maxPrice;
 
     /** 成色下限（1~10） */
     private Integer conditionLevel;

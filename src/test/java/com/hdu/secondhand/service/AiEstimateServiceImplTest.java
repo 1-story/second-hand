@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * AI 估价服务单元测试（规则引擎编排 + 落库审计）
+ * AI 智能估价服务单元测试（对齐规范 6.3：原价×成色，金额分，engine 降级）
  */
 @ExtendWith(MockitoExtension.class)
 class AiEstimateServiceImplTest {
@@ -45,41 +45,44 @@ class AiEstimateServiceImplTest {
 
     private AiEstimateServiceImpl aiEstimateService;
 
-    private Category phoneCategory;
+    private Category digitalCategory;
 
     @BeforeEach
     void setUp() {
         aiEstimateService = new AiEstimateServiceImpl(
                 categoryMapper, aiEstimateLogMapper, aiService, objectMapper);
-        // ai.enabled 默认 false（与生产默认一致），useLlm 时走不到大模型
+        // ai.enabled 默认 false（与生产默认一致）
 
-        phoneCategory = new Category();
-        phoneCategory.setId(11L);
-        phoneCategory.setName("手机");
-        phoneCategory.setBasePrice(new BigDecimal("3000"));
-        phoneCategory.setDepreciationRate(new BigDecimal("0.18"));
-        phoneCategory.setHeatWeight(new BigDecimal("1.3"));
+        digitalCategory = new Category();
+        digitalCategory.setId(1L);
+        digitalCategory.setName("数码电子");
+        digitalCategory.setBasePrice(new BigDecimal("3000"));
+        digitalCategory.setDepreciationRate(new BigDecimal("0.18"));
+        digitalCategory.setHeatWeight(new BigDecimal("1.3"));
     }
 
     @Test
-    @DisplayName("估价：规则引擎结果 + 落库审计")
+    @DisplayName("估价：原价3000元、digital、九成新 → 分单位结果 + 落库")
     void estimate_basic() {
-        when(categoryMapper.selectById(11L)).thenReturn(phoneCategory);
+        // digital key → 分类 ID 1
+        when(categoryMapper.selectById(1L)).thenReturn(digitalCategory);
         when(aiEstimateLogMapper.insert(any(AiEstimateLog.class))).thenReturn(1);
 
         AiEstimateRequest req = new AiEstimateRequest();
-        req.setCategoryId(11L);
-        req.setConditionLevel(9);
-        req.setAgeMonths(12);
+        req.setOriginalPrice(300000L); // 3000元
+        req.setCategory("digital");
+        req.setCondition(90);
 
         AiEstimateVO vo = aiEstimateService.estimate(req, 1L);
 
         assertNotNull(vo);
-        // 3000 * 0.88 * (0.82)^1 * 1.3 = 3000*0.88*0.82*1.3 = 2814.24 → 2814
-        assertEquals(new BigDecimal("2814"), vo.getRecommend());
-        assertTrue(vo.getMin().compareTo(vo.getRecommend()) <= 0);
-        assertTrue(vo.getRecommend().compareTo(vo.getMax()) <= 0);
-        assertEquals(1, vo.getSource()); // 纯规则
+        // 3000 * 0.88(九成新) * 0.82(年折旧18%) * 1.3(热度) = 2814.24 → 2814元 = 281400分
+        assertEquals(281400L, vo.getSuggestPrice());
+        assertEquals(253300L, vo.getPriceRange().getMin());  // 2814*0.9=2532.6 → 2533元
+        assertEquals(309500L, vo.getPriceRange().getMax());  // 2814*1.1=3095.4 → 3095元
+        assertEquals("rule", vo.getEngine()); // ai.enabled=false → 规则兜底
+        assertEquals(1, vo.getSource());
+        assertNotNull(vo.getReason());
         assertNotNull(vo.getDetail());
         // 落库审计
         verify(aiEstimateLogMapper).insert(any(AiEstimateLog.class));
@@ -88,42 +91,60 @@ class AiEstimateServiceImplTest {
     @Test
     @DisplayName("估价：分类不存在报错且不落库")
     void estimate_categoryNotFound() {
-        when(categoryMapper.selectById(99L)).thenReturn(null);
+        when(categoryMapper.selectById(8L)).thenReturn(null); // other 映射 ID 8
         AiEstimateRequest req = new AiEstimateRequest();
-        req.setCategoryId(99L);
+        req.setOriginalPrice(10000L);
+        req.setCategory("other");
         assertThrows(BizException.class, () -> aiEstimateService.estimate(req, 1L));
         verify(aiEstimateLogMapper, never()).insert(any(AiEstimateLog.class));
     }
 
     @Test
-    @DisplayName("估价：分类为空报参数错误")
-    void estimate_missingCategory() {
+    @DisplayName("估价：原价必须大于 0")
+    void estimate_invalidPrice() {
         AiEstimateRequest req = new AiEstimateRequest();
+        req.setOriginalPrice(0L);
+        req.setCategory("digital");
+        assertThrows(BizException.class, () -> aiEstimateService.estimate(req, 1L));
+
+        req.setOriginalPrice(null);
         assertThrows(BizException.class, () -> aiEstimateService.estimate(req, 1L));
     }
 
     @Test
-    @DisplayName("估价：成色越界抛参数异常（规则引擎校验）")
-    void estimate_invalidCondition() {
-        when(categoryMapper.selectById(11L)).thenReturn(phoneCategory);
-        AiEstimateRequest req = new AiEstimateRequest();
-        req.setCategoryId(11L);
-        req.setConditionLevel(15);
-        assertThrows(IllegalArgumentException.class, () -> aiEstimateService.estimate(req, 1L));
-    }
-
-    @Test
-    @DisplayName("估价：useLlm=true 但 ai.enabled=false 时仍用规则结果（不调用大模型）")
+    @DisplayName("估价：ai.enabled=false 时不调用大模型（engine=rule）")
     void estimate_llmDisabled() {
-        when(categoryMapper.selectById(11L)).thenReturn(phoneCategory);
+        when(categoryMapper.selectById(1L)).thenReturn(digitalCategory);
         when(aiEstimateLogMapper.insert(any(AiEstimateLog.class))).thenReturn(1);
 
         AiEstimateRequest req = new AiEstimateRequest();
-        req.setCategoryId(11L);
-        req.setUseLlm(true);
+        req.setOriginalPrice(50000L);
+        req.setCategory("digital");
+        req.setCondition(100);
 
         AiEstimateVO vo = aiEstimateService.estimate(req, 1L);
-        assertEquals(1, vo.getSource());
+        assertEquals("rule", vo.getEngine());
         verify(aiService, never()).llmEstimate(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("估价：成色越高估价越高（100 全新 > 70 七成新）")
+    void estimate_conditionEffect() {
+        when(categoryMapper.selectById(1L)).thenReturn(digitalCategory);
+        when(aiEstimateLogMapper.insert(any(AiEstimateLog.class))).thenReturn(1);
+
+        AiEstimateRequest fresh = new AiEstimateRequest();
+        fresh.setOriginalPrice(100000L);
+        fresh.setCategory("digital");
+        fresh.setCondition(100);
+
+        AiEstimateRequest old = new AiEstimateRequest();
+        old.setOriginalPrice(100000L);
+        old.setCategory("digital");
+        old.setCondition(70);
+
+        AiEstimateVO r1 = aiEstimateService.estimate(fresh, 1L);
+        AiEstimateVO r2 = aiEstimateService.estimate(old, 1L);
+        assertTrue(r1.getSuggestPrice() > r2.getSuggestPrice());
     }
 }

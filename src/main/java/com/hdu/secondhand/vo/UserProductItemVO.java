@@ -12,7 +12,8 @@ public class UserProductItemVO {
 
     private Long productId;
     private String title;
-    private java.math.BigDecimal price;
+    /** 价格（分） */
+    private Long price;
     private String coverImage;
     private String location;
     private Integer status;

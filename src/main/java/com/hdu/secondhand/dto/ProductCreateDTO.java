@@ -20,8 +20,8 @@ public class ProductCreateDTO {
     /** 详细描述 */
     private String description;
 
-    /** 期望售价（必填，>0） */
-    private BigDecimal price;
+    /** 期望售价（必填，单位：分，>0） */
+    private Long price;
 
     /** 成色等级 1~10（默认 7） */
     private Integer conditionLevel;
@@ -41,8 +41,8 @@ public class ProductCreateDTO {
     /** 图片列表 */
     private List<String> images;
 
-    /** AI 估价（可选，自动填表发布时带入） */
-    private BigDecimal estimatedPrice;
+    /** AI 估价（可选，单位：分，自动填表发布时带入） */
+    private Long estimatedPrice;
 
     /** 发布后状态：true=立即上架(1)，false=草稿(0)；默认立即上架 */
     private Boolean publishNow;

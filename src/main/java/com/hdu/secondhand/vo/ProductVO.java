@@ -20,8 +20,10 @@ public class ProductVO {
     private String categoryName;
     private String title;
     private String description;
-    private BigDecimal price;
-    private BigDecimal estimatedPrice;
+    /** 价格（分） */
+    private Long price;
+    /** AI 估价（分） */
+    private Long estimatedPrice;
     private Integer conditionLevel;
     private String conditionDesc;
     private String tags;

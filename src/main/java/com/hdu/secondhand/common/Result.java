@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 /**
  * 统一返回体：{ code, message, data }
+ * 对齐《接口约定规范 v1.0》：code=0 表示成功；失败为业务错误码；data 无数据返回 null。
  */
 @Data
 public class Result<T> implements Serializable {

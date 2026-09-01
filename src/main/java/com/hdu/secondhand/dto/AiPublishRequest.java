@@ -14,6 +14,6 @@ public class AiPublishRequest {
     /** 用户对草稿的微调：最终标题（可选，默认取草稿） */
     private String title;
 
-    /** 最终期望售价（可选，默认取草稿估价） */
-    private java.math.BigDecimal price;
+    /** 最终期望售价（可选，单位：分，默认取草稿估价） */
+    private Long price;
 }

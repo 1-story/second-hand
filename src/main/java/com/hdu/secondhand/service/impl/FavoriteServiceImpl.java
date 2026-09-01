@@ -10,6 +10,7 @@ import com.hdu.secondhand.entity.Product;
 import com.hdu.secondhand.mapper.FavoriteMapper;
 import com.hdu.secondhand.mapper.ProductMapper;
 import com.hdu.secondhand.service.FavoriteService;
+import com.hdu.secondhand.util.MoneyUtil;
 import com.hdu.secondhand.vo.UserProductItemVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -101,7 +102,7 @@ public class FavoriteServiceImpl implements FavoriteService {
                 UserProductItemVO vo = new UserProductItemVO();
                 vo.setProductId(product.getId());
                 vo.setTitle(product.getTitle());
-                vo.setPrice(product.getPrice());
+                vo.setPrice(MoneyUtil.toFen(product.getPrice()));
                 vo.setCoverImage(product.getCoverImage());
                 vo.setLocation(product.getLocation());
                 vo.setStatus(product.getStatus());

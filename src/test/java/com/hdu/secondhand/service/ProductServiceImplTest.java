@@ -88,7 +88,7 @@ class ProductServiceImplTest {
         ProductCreateDTO dto = new ProductCreateDTO();
         dto.setCategoryId(11L);
         dto.setTitle("iPhone 13 九成新");
-        dto.setPrice(new BigDecimal("2800"));
+        dto.setPrice(280000L); // 2800元
         dto.setConditionLevel(9);
         dto.setPublishNow(true);
 
@@ -106,7 +106,7 @@ class ProductServiceImplTest {
         ProductCreateDTO dto = new ProductCreateDTO();
         dto.setCategoryId(11L);
         dto.setTitle("测试草稿");
-        dto.setPrice(new BigDecimal("100"));
+        dto.setPrice(10000L); // 100元
         dto.setPublishNow(false);
 
         productService.create(dto, 1L);
@@ -121,7 +121,7 @@ class ProductServiceImplTest {
         ProductCreateDTO dto = new ProductCreateDTO();
         dto.setCategoryId(99L);
         dto.setTitle("测试");
-        dto.setPrice(new BigDecimal("100"));
+        dto.setPrice(10000L);
         assertThrows(BizException.class, () -> productService.create(dto, 1L));
         verify(productMapper, never()).insert(any(Product.class));
     }
@@ -133,7 +133,7 @@ class ProductServiceImplTest {
         ProductCreateDTO dto = new ProductCreateDTO();
         dto.setCategoryId(11L);
         dto.setTitle("测试");
-        dto.setPrice(BigDecimal.ZERO);
+        dto.setPrice(0L); // 0 分非法
         assertThrows(BizException.class, () -> productService.create(dto, 1L));
     }
 
@@ -202,7 +202,7 @@ class ProductServiceImplTest {
         dto.setPage(1);
         dto.setSize(10);
         var result = productService.query(dto);
-        assertEquals(0, result.getRecords().size());
+        assertEquals(0, result.getList().size());
     }
 
     @Test

@@ -16,6 +16,6 @@ public class AiDraftRequest {
     /** 用户提示/关键词，例如："iPad 用了两年 屏幕有划痕" */
     private String hint;
 
-    /** 期望售价（可选，用户预设） */
-    private java.math.BigDecimal expectPrice;
+    /** 期望售价（可选，单位：分） */
+    private Long expectPrice;
 }

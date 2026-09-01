@@ -23,6 +23,7 @@ import com.hdu.secondhand.mapper.ProductMapper;
 import com.hdu.secondhand.mapper.UserMapper;
 import com.hdu.secondhand.service.BrowseHistoryService;
 import com.hdu.secondhand.service.ProductService;
+import com.hdu.secondhand.util.MoneyUtil;
 import com.hdu.secondhand.util.UserContext;
 import com.hdu.secondhand.vo.ProductListItemVO;
 import com.hdu.secondhand.vo.ProductVO;
@@ -67,7 +68,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (dto.getTitle().length() > 100) {
             throw new BizException(ResultCode.BAD_REQUEST, "标题不能超过 100 字");
         }
-        if (dto.getPrice() == null || dto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+        if (dto.getPrice() == null || dto.getPrice() <= 0) {
             throw new BizException(ResultCode.BAD_REQUEST, "售价必须大于 0");
         }
         Category category = categoryMapper.selectById(dto.getCategoryId());
@@ -85,8 +86,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         product.setCategoryId(dto.getCategoryId());
         product.setTitle(dto.getTitle().trim());
         product.setDescription(dto.getDescription());
-        product.setPrice(dto.getPrice());
-        product.setEstimatedPrice(dto.getEstimatedPrice());
+        product.setPrice(MoneyUtil.toYuan(dto.getPrice()));
+        product.setEstimatedPrice(MoneyUtil.toYuan(dto.getEstimatedPrice()));
         product.setConditionLevel(conditionLevel);
         product.setConditionDesc(dto.getConditionDesc());
         product.setTags(dto.getTags());
@@ -124,10 +125,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             product.setTitle(dto.getTitle().trim());
         }
         if (dto.getPrice() != null) {
-            if (dto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            if (dto.getPrice() <= 0) {
                 throw new BizException(ResultCode.BAD_REQUEST, "售价必须大于 0");
             }
-            product.setPrice(dto.getPrice());
+            product.setPrice(MoneyUtil.toYuan(dto.getPrice()));
         }
         if (dto.getConditionLevel() != null) {
             if (dto.getConditionLevel() < 1 || dto.getConditionLevel() > 10) {
@@ -202,10 +203,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             wrapper.eq(Product::getCategoryId, dto.getCategoryId());
         }
         if (dto.getMinPrice() != null) {
-            wrapper.ge(Product::getPrice, dto.getMinPrice());
+            wrapper.ge(Product::getPrice, MoneyUtil.toYuan(dto.getMinPrice()));
         }
         if (dto.getMaxPrice() != null) {
-            wrapper.le(Product::getPrice, dto.getMaxPrice());
+            wrapper.le(Product::getPrice, MoneyUtil.toYuan(dto.getMaxPrice()));
         }
         if (dto.getConditionLevel() != null) {
             wrapper.ge(Product::getConditionLevel, dto.getConditionLevel());
@@ -249,6 +250,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         // 组装 VO
         ProductVO vo = new ProductVO();
         BeanUtils.copyProperties(product, vo);
+        vo.setPrice(MoneyUtil.toFen(product.getPrice()));
+        vo.setEstimatedPrice(MoneyUtil.toFen(product.getEstimatedPrice()));
         Category category = categoryMapper.selectById(product.getCategoryId());
         if (category != null) {
             vo.setCategoryName(category.getName());
@@ -340,8 +343,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             ProductListItemVO vo = new ProductListItemVO();
             vo.setId(p.getId());
             vo.setTitle(p.getTitle());
-            vo.setPrice(p.getPrice());
-            vo.setEstimatedPrice(p.getEstimatedPrice());
+            vo.setPrice(MoneyUtil.toFen(p.getPrice()));
+            vo.setEstimatedPrice(MoneyUtil.toFen(p.getEstimatedPrice()));
             vo.setConditionLevel(p.getConditionLevel());
             vo.setCoverImage(p.getCoverImage());
             vo.setLocation(p.getLocation());

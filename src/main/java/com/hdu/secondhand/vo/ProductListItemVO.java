@@ -13,8 +13,10 @@ public class ProductListItemVO {
 
     private Long id;
     private String title;
-    private BigDecimal price;
-    private BigDecimal estimatedPrice;
+    /** 价格（分） */
+    private Long price;
+    /** AI 估价（分） */
+    private Long estimatedPrice;
     private Integer conditionLevel;
     private String coverImage;
     private String location;

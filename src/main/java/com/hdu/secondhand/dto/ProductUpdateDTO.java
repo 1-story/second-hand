@@ -20,8 +20,8 @@ public class ProductUpdateDTO {
     /** 详细描述 */
     private String description;
 
-    /** 期望售价 */
-    private BigDecimal price;
+    /** 期望售价（单位：分） */
+    private Long price;
 
     /** 成色等级 1~10 */
     private Integer conditionLevel;

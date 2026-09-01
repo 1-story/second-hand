@@ -78,7 +78,9 @@ java -cp <test-classpath> com.hdu.secondhand.TestRunner
 
 > ⚠️ `pom.verify.xml` 与 `settings.offline.xml` 仅供本机离线验证，**部署请使用 `pom.xml` 并在联网环境构建**。
 
-## 5. 接口一览
+## 5. 接口一览（已对齐《接口约定规范 v1.0》）
+
+统一返回 `{code, message, data}`（**code=0 成功**），金额单位**分**，分页 `{list,total,page,pageSize}`。
 
 | 模块 | 方法/路径 | 说明 |
 |------|-----------|------|
@@ -86,27 +88,33 @@ java -cp <test-classpath> com.hdu.secondhand.TestRunner
 | 商品 | PUT `/api/products/{id}` | 编辑（仅本人） |
 | 商品 | PUT `/api/products/{id}/status` | 上架/下架 |
 | 商品 | DELETE `/api/products/{id}` | 删除（逻辑） |
-| 商品 | GET `/api/products` | 分页浏览/检索（关键词/分类/价格/成色/排序） |
-| 商品 | GET `/api/products/{id}` | 详情（浏览+1、足迹、收藏状态） |
+| 商品 | GET `/api/products` | 分页浏览/检索（免登录只读） |
+| 商品 | GET `/api/products/{id}` | 详情（免登录只读） |
 | 商品 | GET `/api/products/mine` | 我的商品 |
 | 商品 | GET `/api/products/recommend` | 猜你喜欢 |
 | 商品 | GET `/api/products/history` | 浏览足迹 |
 | 收藏 | POST `/api/favorites/{productId}` | 收藏/取消（幂等切换） |
 | 收藏 | GET `/api/favorites` | 我的收藏 |
-| AI | POST `/api/ai/estimate` | AI 智能估价（规则引擎±大模型） |
-| AI | POST `/api/ai/draft` | AI 自动填表（识别→估价→草稿） |
-| AI | POST `/api/ai/publish` | AI 一键发布（草稿确认） |
+| AI | POST `/api/ai/identify` | AI 识别（图片→分类+成色，base64） |
+| AI | POST `/api/ai/describe` | AI 描述生成 |
+| AI | POST `/api/ai/estimate` | AI 智能估价（双层+降级，金额分） |
+| AI | POST `/api/ai/draft` | AI 自动填表（草稿） |
+| AI | POST `/api/ai/publish` | AI 一键发布 |
+| 字典 | GET `/api/dicts` | 枚举字典（免登录） |
 
-详见 `docs/接口说明文档.md`。
+`/api/ai/chat`（AI 问答，林天楚）、`/api/ai/review`（AI 审核，V1.0）待接入。详见 `docs/接口说明文档.md`。
 
 ## 6. 与其他成员的集成约定
 
 | 约定 | 说明 |
 |------|------|
-| 当前用户 | 前端请求头携带 `X-User-Id`；登录模块（陈思瀚）就绪后改为 Token 解析（改 `util/UserContext` 一处） |
-| AiService | 接口 `ai/AiService`：当前 `MockAiService`（离线关键词识别）；大模型 API 就绪后启用 `HttpAiService`（`application.yml → ai.enabled=true` + `ai.llm.*`） |
-| 统一返回 | `Result<T>{code,message,data}`，分页 `PageResult<T>`；CORS 已开放（`application.yml → cors.allowed-origins`） |
-| 状态枚举 | 商品状态 `common/ProductStatus`（0草稿 1在售 2下架 3售出 4审核中 5驳回） |
+| 统一响应 | `Result<T>{code,message,data}`，**code=0 成功**；分页 `PageResult{list,total,page,pageSize}`；错误码/HTTP 状态对齐规范 v1.0 |
+| 金额单位 | 接口层整数「分」（`util/MoneyUtil` 与数据库元互转） |
+| 时间格式 | `yyyy-MM-dd HH:mm:ss`（`config/JacksonConfig` 全局） |
+| 当前用户 | 优先 `Authorization: Bearer <JWT>`（`util/JwtTokenService`，陈思瀚接入）；开发期兼容 `X-User-Id` 头 |
+| AiService | 接口 `ai/AiService`：当前 `MockAiService`（离线，engine=rule）；大模型就绪后 `ai.enabled=true` 切换（engine=llm，失败自动降级） |
+| 枚举 | `ai/CategoryEnum` 维护规范分类 key（book/digital/...）与数据库 ID 映射；成色 100/90/80/70 ↔ 1~10 |
+| CORS | 已开放（`application.yml → cors.allowed-origins`） |
 
 ## 7. 里程碑对照
 

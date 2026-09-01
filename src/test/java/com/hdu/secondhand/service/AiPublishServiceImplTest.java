@@ -101,7 +101,7 @@ class AiPublishServiceImplTest {
         assertNotNull(vo.getTitle());
         // 估价应为正数且在合理区间（3000 * 0.88 * 年限 * 1.3 附近）
         assertNotNull(vo.getSuggestPrice());
-        assertTrue(vo.getSuggestPrice().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(vo.getSuggestPrice() > 0);
         verify(aiPublishDraftMapper).insert(any(AiPublishDraft.class));
     }
 
@@ -154,8 +154,9 @@ class AiPublishServiceImplTest {
 
         assertNotNull(vo.getId());
         assertEquals(ProductStatus.ON_SALE, vo.getStatus());
-        assertEquals(new BigDecimal("2000"), vo.getPrice());
-        assertEquals(new BigDecimal("2000"), vo.getEstimatedPrice());
+        // 草稿 suggestPrice=2000 分（20元），发布后 VO 输出分
+        assertEquals(2000L, vo.getPrice());
+        assertEquals(2000L, vo.getEstimatedPrice());
         assertEquals(1, vo.getImages().size());
         // 草稿状态更新为已发布
         verify(aiPublishDraftMapper).updateById(any(AiPublishDraft.class));
@@ -180,11 +181,11 @@ class AiPublishServiceImplTest {
         AiPublishRequest req = new AiPublishRequest();
         req.setDraftId(101L);
         req.setTitle("新标题");
-        req.setPrice(new BigDecimal("1800"));
+        req.setPrice(180000L); // 1800元
 
         ProductVO vo = aiPublishService.publish(req, 1L);
         assertEquals("新标题", vo.getTitle());
-        assertEquals(new BigDecimal("1800"), vo.getPrice());
+        assertEquals(180000L, vo.getPrice());
     }
 
     @Test
